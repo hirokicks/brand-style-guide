@@ -784,8 +784,9 @@
       保存済み
     </div>
     <button class="btn btn-css" onclick="exportCSS()">CSS書き出し</button>
-    <button class="btn btn-ghost" onclick="doExport()">エクスポート</button>
-    <button class="btn btn-ghost" onclick="document.getElementById('importFile').click()">インポート</button>
+    <button class="btn btn-primary" onclick="exportHTML()">HTMLで書き出し</button>
+    <button class="btn btn-ghost" onclick="doExport()">データ保存</button>
+    <button class="btn btn-ghost" onclick="document.getElementById('importFile').click()">データ読込</button>
   </div>
 </header>
 
@@ -865,6 +866,7 @@
 // ============================================================
 // Data Model & Default
 // ============================================================
+// @@EMBEDDED_DATA_START@@
 const DEFAULT = {
   brandName: 'Brand Name',
   sections: [
@@ -971,6 +973,7 @@ const DEFAULT = {
     }
   ]
 };
+// @@EMBEDDED_DATA_END@@
 
 // ============================================================
 // State
@@ -1635,6 +1638,29 @@ function doExport() {
   a.click();
   URL.revokeObjectURL(url);
   toast('エクスポートしました');
+}
+
+async function exportHTML() {
+  commitPageTitle();
+  try {
+    const resp = await fetch(location.href);
+    const html = await resp.text();
+    const dataJson = JSON.stringify(D, null, 2);
+    const newHtml = html.replace(
+      /\/\/ @@EMBEDDED_DATA_START@@[\s\S]*?\/\/ @@EMBEDDED_DATA_END@@/,
+      `// @@EMBEDDED_DATA_START@@\nconst DEFAULT = ${dataJson};\n// @@EMBEDDED_DATA_END@@`
+    );
+    const blob = new Blob([newHtml], { type: 'text/html; charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'index.html';
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('index.html を書き出しました — GitHubにアップロードしてください');
+  } catch(e) {
+    toast('エラー: 書き出しに失敗しました');
+  }
 }
 
 function exportCSS() {
