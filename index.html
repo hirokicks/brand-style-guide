@@ -461,16 +461,80 @@
     .empty-state {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 60vh;
+      align-items: stretch;
       color: var(--text-3);
       text-align: center;
-      gap: 12px;
     }
-    .empty-state svg { opacity: .3; }
-    .empty-state h3 { font-size: 18px; color: var(--text-2); font-weight: 600; }
-    .empty-state p { font-size: 14px; max-width: 280px; line-height: 1.6; }
+    .empty-state-inner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 14px 24px;
+      color: var(--text-3);
+      font-size: 12px;
+    }
+    .empty-state-inner svg { opacity: .25; }
+    .empty-state-inner p { font-size: 12px; color: var(--text-3); }
+
+    /* Cover image zone */
+    .cover-zone {
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+      background: #f8fafc;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .cover-upload-placeholder {
+      aspect-ratio: 16 / 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 24px;
+      cursor: pointer;
+      color: var(--text-3);
+      transition: background .15s;
+    }
+    .cover-upload-placeholder:hover { background: #f1f5f9; }
+    .cover-upload-placeholder svg { opacity: .45; }
+    .cover-upload-placeholder span { font-size: 13px; font-weight: 500; }
+    .cover-upload-hint { font-size: 11px !important; font-weight: 400 !important; opacity: .7; }
+    .cover-img-el {
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+      display: block;
+    }
+    .cover-img-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      opacity: 0;
+      transition: opacity .2s;
+    }
+    .cover-zone:hover .cover-img-overlay { opacity: 1; }
+    .cover-overlay-btn {
+      background: rgba(255,255,255,.92);
+      border: none;
+      border-radius: 6px;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background .1s;
+    }
+    .cover-overlay-btn:hover { background: #fff; }
+    .cover-overlay-btn.danger { color: #dc2626; }
+    html[data-published] .cover-upload-placeholder { display: none !important; }
+    html[data-published] .cover-img-overlay { display: none !important; }
+    html[data-published] .cover-zone { cursor: default; }
 
     /* ── Sidebar ── */
     .sidebar {
@@ -530,6 +594,12 @@
       flex-shrink: 0;
     }
     .nav-section.open .nav-arrow { transform: rotate(90deg); }
+
+    .nav-divider {
+      margin: 8px 16px;
+      border: none;
+      border-top: 1px solid #dddddd;
+    }
 
     .sec-del {
       display: none;
@@ -876,12 +946,32 @@
   <!-- Content (right) -->
   <main class="content-area" id="contentArea">
     <div class="empty-state" id="emptyState">
-      <svg width="56" height="56" fill="none" viewBox="0 0 56 56">
-        <rect x="8" y="12" width="40" height="32" rx="4" stroke="#cccccc" stroke-width="2"/>
-        <path d="M16 22h24M16 28h18M16 34h12" stroke="#cccccc" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-      <h3>ページを選択してください</h3>
-      <p>左のナビゲーションからページを選ぶか、新しいセクションを追加してください。</p>
+      <!-- Cover image zone -->
+      <div class="cover-zone" id="coverZone">
+        <div class="cover-upload-placeholder" id="coverPlaceholder" onclick="document.getElementById('coverImgInput').click()">
+          <svg width="44" height="44" fill="none" viewBox="0 0 44 44">
+            <rect x="4" y="8" width="36" height="28" rx="4" stroke="currentColor" stroke-width="1.6"/>
+            <circle cx="15" cy="18" r="3.5" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M4 30l11-9 8 7 6-5 11 9" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+          </svg>
+          <span>表紙画像をアップロード</span>
+          <span class="cover-upload-hint">クリックして画像を選択（JPG・PNG・SVG）</span>
+        </div>
+        <img id="coverImgEl" class="cover-img-el" style="display:none" alt="カバー画像"/>
+        <div class="cover-img-overlay" id="coverImgOverlay" style="display:none">
+          <button class="cover-overlay-btn" onclick="document.getElementById('coverImgInput').click();event.stopPropagation()">画像を変更</button>
+          <button class="cover-overlay-btn danger" onclick="removeCoverImg();event.stopPropagation()">削除</button>
+        </div>
+      </div>
+      <input type="file" id="coverImgInput" accept="image/*" style="display:none" onchange="onCoverImgSelect(this)">
+      <!-- Info text -->
+      <div class="empty-state-inner">
+        <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
+          <path d="M8 3v5l3 3" stroke="#cccccc" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="8" cy="8" r="6.5" stroke="#cccccc" stroke-width="1.2"/>
+        </svg>
+        <p>左のナビゲーションからページを選択してください</p>
+      </div>
     </div>
 
     <div id="pageContent" style="display:none">
@@ -938,6 +1028,7 @@
 // @@EMBEDDED_DATA_START@@
 const DEFAULT = {
   brandName: 'Brand Name',
+  coverImage: null,
   sections: [
     {
       id: 'logo', title: 'ロゴ', icon: '◉', open: true,
@@ -998,7 +1089,7 @@ const DEFAULT = {
       ]
     },
     {
-      id: 'css', title: 'CSSスタイル', icon: '{;}', open: false,
+      id: 'css', title: 'CSSスタイル', icon: '{;}', open: false, separator: true,
       pages: [
         { id: 'css-1', title: 'カラー変数', blocks: [
           { id: 'cs1', type: 'heading', content: 'カラー変数' },
@@ -1058,7 +1149,17 @@ let saveIndicatorTimer = null;
 function loadData() {
   try {
     const raw = localStorage.getItem('bsg_v1');
-    if (raw) { D = JSON.parse(raw); return; }
+    if (raw) {
+      D = JSON.parse(raw);
+      // migrate: apply separator from DEFAULT to matching sections
+      DEFAULT.sections.forEach(def => {
+        if (def.separator) {
+          const sec = D.sections.find(s => s.id === def.id);
+          if (sec) sec.separator = true;
+        }
+      });
+      return;
+    }
   } catch(e) {}
   D = JSON.parse(JSON.stringify(DEFAULT));
 }
@@ -1076,6 +1177,46 @@ function flashSave() {
   el.classList.add('show');
   clearTimeout(saveIndicatorTimer);
   saveIndicatorTimer = setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+// ============================================================
+// Cover Image
+// ============================================================
+function onCoverImgSelect(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    D.coverImage = e.target.result;
+    saveData();
+    renderCoverImg();
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+function removeCoverImg() {
+  D.coverImage = null;
+  saveData();
+  renderCoverImg();
+}
+
+function renderCoverImg() {
+  const img = document.getElementById('coverImgEl');
+  const placeholder = document.getElementById('coverPlaceholder');
+  const overlay = document.getElementById('coverImgOverlay');
+  if (!img) return;
+  if (D.coverImage) {
+    img.src = D.coverImage;
+    img.style.display = 'block';
+    placeholder.style.display = 'none';
+    overlay.style.display = 'flex';
+  } else {
+    img.style.display = 'none';
+    img.src = '';
+    placeholder.style.display = 'flex';
+    overlay.style.display = 'none';
+  }
 }
 
 // ============================================================
@@ -1112,6 +1253,11 @@ function renderSidebar() {
   D.sections.forEach(sec => {
     const hasActive = sec.pages.some(p => p.id === currentPageId);
     const div = document.createElement('div');
+    if (sec.separator) {
+      const hr = document.createElement('hr');
+      hr.className = 'nav-divider';
+      nav.appendChild(hr);
+    }
     div.className = 'nav-section' + (sec.open ? ' open' : '');
     div.id = 'sec-' + sec.id;
     div.innerHTML = `
@@ -1872,6 +2018,7 @@ document.addEventListener('click', e => {
 // ============================================================
 loadData();
 document.getElementById('brandName').innerText = D.brandName || 'Brand Name';
+renderCoverImg();
 renderSidebar();
 </script>
 </body>
