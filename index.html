@@ -66,7 +66,10 @@
       font-size: 15px;
       flex-shrink: 0;
       font-weight: 700;
+      cursor: pointer;
+      transition: opacity .15s;
     }
+    .header-logo:hover { opacity: .85; }
     .brand-name {
       font-size: 16px;
       font-weight: 700;
@@ -901,7 +904,7 @@
 
 <!-- Header -->
 <header class="header">
-  <div class="header-logo">B</div>
+  <div class="header-logo" onclick="goHome()" title="表紙に戻る">B</div>
   <div contenteditable="true" class="brand-name" id="brandName" spellcheck="false" data-placeholder="ブランド名">Brand Name</div>
   <div class="header-tag">Style Guide</div>
   <div class="header-right">
@@ -1292,6 +1295,15 @@ function renderSidebar() {
 function toggleSec(secId) {
   const sec = D.sections.find(s => s.id === secId);
   if (sec) { sec.open = !sec.open; saveData(); renderSidebar(); }
+}
+
+function goHome() {
+  commitPageTitle();
+  currentPageId = null;
+  renderSidebar();
+  document.getElementById('pageContent').style.display = 'none';
+  document.getElementById('emptyState').style.display = 'flex';
+  renderCoverImg();
 }
 
 function goPage(pageId) {
