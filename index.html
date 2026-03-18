@@ -698,6 +698,66 @@
     }
     .btn-add-section:hover { border-color: #aaaaaa; color: #333333; }
 
+    /* ── Responsive utilities ── */
+    .hamburger-btn {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 36px; height: 36px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--text-2);
+      flex-shrink: 0;
+      transition: color .15s;
+    }
+    .hamburger-btn:hover { color: var(--text); }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      top: var(--header-h);
+      background: rgba(0,0,0,.3);
+      z-index: 149;
+    }
+    .sidebar-overlay.open { display: block; }
+
+    @media (max-width: 768px) {
+      .hamburger-btn { display: flex; }
+      .header-tag { display: none; }
+      .save-indicator { display: none; }
+      /* データ管理グループを非表示 */
+      .header-right .header-data-group,
+      .header-right .header-divider { display: none; }
+
+      .sidebar {
+        position: fixed;
+        top: var(--header-h);
+        left: 0;
+        height: calc(100vh - var(--header-h));
+        z-index: 150;
+        transform: translateX(-100%);
+        transition: transform .25s ease;
+        box-shadow: 4px 0 20px rgba(0,0,0,.12);
+        border-right: 1px solid var(--border);
+      }
+      .sidebar.open { transform: translateX(0); }
+
+      .content-area { padding: 28px 24px 60px; }
+
+      .csv-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .csv-table { min-width: 480px; }
+    }
+
+    @media (max-width: 375px) {
+      .content-area { padding: 20px 16px 60px; }
+      .page-title { font-size: 24px; }
+      .btn { font-size: 12px; padding: 5px 9px; }
+      /* 書き出しグループも非表示 */
+      .header-right .header-btn-group { display: none; }
+    }
+
     /* ── Modal ── */
     .modal-bg {
       display: none;
@@ -916,7 +976,7 @@
       保存済み
     </div>
     <!-- データ管理グループ -->
-    <div class="header-btn-group">
+    <div class="header-btn-group header-data-group">
       <button class="btn btn-ghost" onclick="doExport()" title="現在のデータをJSONで保存">バックアップ</button>
       <button class="btn btn-ghost" onclick="document.getElementById('importFile').click()" title="バックアップJSONを読み込む">復元</button>
     </div>
@@ -929,6 +989,11 @@
       <button class="btn btn-ghost" style="border-color:#a5b4fc;color:#6366f1" onclick="exportHTML()" title="編集機能つきのHTMLを書き出す（作業継続用）">作業用HTML</button>
       <button class="btn btn-primary" onclick="exportPublished()" title="編集機能なしの閲覧専用HTMLを書き出す">公開用HTMLを書き出し</button>
     </div>
+    <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleSidebar()" aria-label="メニュー">
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+        <path d="M0 1h16M0 6h16M0 11h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </button>
   </div>
 </header>
 
@@ -936,7 +1001,7 @@
 <div class="layout">
 
   <!-- Sidebar (left) -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
     <div class="sidebar-head">
       <span class="sidebar-head-label">コレクション</span>
     </div>
@@ -945,6 +1010,8 @@
       <button class="btn-add-section" onclick="promptAddSection()">＋ セクションを追加</button>
     </div>
   </aside>
+
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
   <!-- Content (right) -->
   <main class="content-area" id="contentArea">
@@ -1297,6 +1364,15 @@ function toggleSec(secId) {
   if (sec) { sec.open = !sec.open; saveData(); renderSidebar(); }
 }
 
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+}
+
 function goHome() {
   commitPageTitle();
   currentPageId = null;
@@ -1304,6 +1380,7 @@ function goHome() {
   document.getElementById('pageContent').style.display = 'none';
   document.getElementById('emptyState').style.display = 'flex';
   renderCoverImg();
+  if (window.innerWidth <= 768) closeSidebar();
 }
 
 function goPage(pageId) {
@@ -1312,6 +1389,7 @@ function goPage(pageId) {
   renderSidebar();
   renderPage();
   saveData();
+  if (window.innerWidth <= 768) closeSidebar();
 }
 
 function commitPageTitle() {
