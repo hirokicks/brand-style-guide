@@ -343,7 +343,7 @@
     .color-swatch {
       width: 88px;
       height: 88px;
-      border-radius: 14px;
+      border-radius: 50%;
       border: 1px solid rgba(0,0,0,.08);
       position: relative;
       overflow: hidden;
@@ -361,7 +361,7 @@
     }
     .color-del {
       position: absolute;
-      top: -7px; right: -7px;
+      top: -4px; right: -4px;
       width: 20px; height: 20px;
       background: #ef4444;
       color: white;
@@ -396,7 +396,7 @@
     .add-color {
       width: 88px;
       height: 88px;
-      border-radius: 14px;
+      border-radius: 50%;
       border: 2px dashed var(--border);
       background: transparent;
       cursor: pointer;
@@ -1454,8 +1454,8 @@ function buildColorsHtml(block) {
         <input type="color" value="${esc(c.hex)}"
           oninput="onColorPick('${block.id}','${c.id}','hex',this.value)"
           onchange="onColorPick('${block.id}','${c.id}','hex',this.value)">
-        <button class="color-del" onclick="deleteColor('${block.id}','${c.id}')" title="削除">✕</button>
       </div>
+      <button class="color-del" onclick="deleteColor('${block.id}','${c.id}')" title="削除">✕</button>
       <div contenteditable="true" spellcheck="false" class="color-name"
         data-placeholder="色名"
         oninput="onColorEdit('${block.id}','${c.id}','name',this)"
